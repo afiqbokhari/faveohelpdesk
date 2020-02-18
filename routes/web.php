@@ -10,6 +10,9 @@
   | and give it the controller to call when that URI is requested.
   |
  */
+
+Route::get('foo', 'TestController@index');
+ 
 Route::group(['middleware' => ['web']], function () {
     Route::group(['middleware' => 'update', 'middleware' => 'install'], function () {
         Auth::routes();
