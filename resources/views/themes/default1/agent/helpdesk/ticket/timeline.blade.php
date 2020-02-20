@@ -266,6 +266,7 @@ if ($thread->title != "") {
                                 <tr><td><b>{!! Lang::get('lang.email') !!}:</b></td>        <td>{{str_limit($user->email,30)}}</td></tr>
                                 @if($user->ban > 0)  <tr><td style="color:orange;"><i class="fa fa-warning"></i><b>
                                             {!!  Lang::get('lang.this_ticket_is_under_banned_user')!!}</td><td></td></tr>@endif
+                                @if($tickets->asset_tag !=null)<tr><td><b>Asset:</b></td>          <td>{{$tickets->asset_tag}}</td></tr>@endif
                             </div>
                         </table>
                     </div>
@@ -898,6 +899,20 @@ if ($thread->title != "") {
                                     <spam id="error-priority" style="display:none" class="help-block text-red">This is a required field</spam>
                                 </div>
                             </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Asset<span class="text-red"> *</span></label>
+                                    <select class="form-control" name="asset_tag">
+                                        @foreach($datas["rows"] as $data)
+                                            <option value="{{$data["asset_tag"]}}" >{{$data["asset_tag"]}}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="field" value="fieldname"/>
+                                    <spam id="error-priority" style="display:none" class="help-block text-red">This is a required field</spam>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                     <div id="show" style="display:none;">

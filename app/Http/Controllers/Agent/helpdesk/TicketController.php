@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agent\helpdesk;
 
 // controllers
+use GuzzleHttp\Client;
 use App\Http\Controllers\Common\FileuploadController;
 use App\Http\Controllers\Common\NotificationController as Notify;
 use App\Http\Controllers\Common\PhpMailController;
@@ -194,7 +195,7 @@ class TicketController extends Controller
     }
 
     /**
-     * Shows the ticket thread details.
+     * Shows the ticket ticketEditPost details.
      *
      * @param type $id
      *
@@ -225,6 +226,23 @@ class TicketController extends Controller
         if ($tickets == null) {
             return redirect()->route('inbox.ticket')->with('fails', \Lang::get('lang.invalid_attempt'));
         }
+
+        $token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjdmZTk3NWViNDNlYjZmZDEyYzBkZGEzOWViZDc0MmZiZmQ1NTQxZmFhOTcyOTkxNjdjYmE5ZjdhZTBjZjEzZjJiYTk0MDVhOThiOTk4NWE5In0.eyJhdWQiOiIxIiwianRpIjoiN2ZlOTc1ZWI0M2ViNmZkMTJjMGRkYTM5ZWJkNzQyZmJmZDU1NDFmYWE5NzI5OTE2N2NiYTlmN2FlMGNmMTNmMmJhOTQwNWE5OGI5OTg1YTkiLCJpYXQiOjE1NzkyMjQ1NzEsIm5iZiI6MTU3OTIyNDU3MSwiZXhwIjoxNjEwODQ2OTcxLCJzdWIiOiIyMDIiLCJzY29wZXMiOltdfQ.vdj6hVZm2nQTj_eNte6Kko1xD7sJY1PNcy_eyVuLbY32gJ1b6W2D_mxNxoEOXnFoNjqY0etF9RiM0NbjuLmWtBnWFNaD4S87N1Sk0ou5sk9kSjoWwRoUOWa1XI54TSP_pcbMISkdeylEcSEt77Hxy28Kpe63hCIWaJ_0KIbOwFni_GnP3K2U8WTnZRck9kCFV9wsUuN-nOeD9rMessLarik0k7Ja3AxXW5FtDXB6cOAR8v_e5HQJfQdoJdoXtsadqsIf6Aj0kOu_1ZQe7dOr9itqSf8WNBcdw5wXZ6e9cRf-aJOwI_Bi34mGc63FJre8u6eVrB7p-3_V3jPfzlKLqKn3WuEQrirq1DUkM2pus2r_Yhvt0NjL6VQqfrWgKZ0kFCGELl5nIkz25ldsZINclKuCYzehJJ7tdMitddqYFsZAZCjGwvUU7qIxn-G7Ppg41z0mJmd8exnC4GQ2fINu17DLL5-gl8tDxz3LQZhQODQcgSQF7a2SwZJqLOQx0tYPg3CqBU8MgG-yqsiCNrE3zcNU-qK3DNcxLR6HiI6R85XJ87-Bt9ssQW_yTzSpvb2JltA5aBTVeiinkakCQxSP4KeiZEKCFTbIaXPscxZQHYKv-1O66w6LQ1qF31tdT7KEAuZp-1ynL9ATReewf_POiITKZzbYcw57bGFU2HXPlC4';
+                
+        $url = 'http://snipeit.ad.aiac.world/api/v1/';
+        $client = new Client(['base_uri' => $url]);
+        
+        $headers = [
+            'Authorization' => 'Bearer ' . $token,        
+            'Accept'        => 'application/json',
+        ];        
+        
+        $response = $client->request('GET', 'hardware', [
+            'headers' => $headers
+        ]);
+
+        $datas = json_decode($response->getBody(), true);
+
         $avg = DB::table('ticket_thread')->where('ticket_id', '=', $id)->where('reply_rating', '!=', 0)->avg('reply_rating');
         $avg_rate = explode('.', $avg);
         $avg_rating = $avg_rate[0];
@@ -235,7 +253,7 @@ class TicketController extends Controller
         $max_size_in_actual = $fileupload[1];
         $tickets_approval = Tickets::where('id', '=', $id)->first();
 
-        return view('themes.default1.agent.helpdesk.ticket.timeline', compact('tickets', 'max_size_in_bytes', 'max_size_in_actual', 'tickets_approval'), compact('thread', 'avg_rating'));
+        return view('themes.default1.agent.helpdesk.ticket.timeline', compact('tickets', 'max_size_in_bytes', 'max_size_in_actual', 'tickets_approval'), compact('thread', 'avg_rating', 'datas'));
     }
 
     public function size()
@@ -466,6 +484,8 @@ class TicketController extends Controller
             $ticket->priority_id = Input::get('ticket_priority');
             $dept = Help_topic::select('department')->where('id', '=', $ticket->help_topic_id)->first();
             $ticket->dept_id = $dept->department;
+            $ticket->asset_id = Input::get('asset_id');
+            $ticket->asset_tag = Input::get('asset_tag');
             $ticket->save();
 
             $threads = $thread->where('ticket_id', '=', $ticket_id)->first();
